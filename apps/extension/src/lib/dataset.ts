@@ -1,11 +1,12 @@
-import type { CaptureRecord } from "./types";
+import type { CaptureRecord } from './types';
 
 export interface DatasetCandidate {
   captureId: string;
   sourceUrl: string;
   recordCount: number;
   fields: string[];
-  kind: "json-array" | "json-embedded-array";
+  kind: 'json-array' | 'json-embedded-array';
+  previewRows: Record<string, unknown>[];
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
@@ -36,13 +37,15 @@ export function detectDatasets(captures: CaptureRecord[]): DatasetCandidate[] {
       const parsed = JSON.parse(body);
       const data = detectArray(parsed);
       if (!data) continue;
-      const firstRecord = data.find((item) => isPlainRecord(item)) as Record<string, unknown> | undefined;
+      const previewRows = data.filter(isPlainRecord).slice(0, 5) as Record<string, unknown>[];
+      const firstRecord = previewRows[0];
       const fields = firstRecord ? Object.keys(firstRecord).slice(0, 12) : [];
       candidates.push({
         captureId: capture.id,
         sourceUrl: capture.url,
         recordCount: data.length,
         fields,
+        previewRows,
         kind: Array.isArray(parsed) ? 'json-array' : 'json-embedded-array',
       });
     } catch {

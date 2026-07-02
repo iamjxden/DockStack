@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CaptureTable } from '../../components/CaptureTable';
 import { DatasetList } from '../../components/DatasetList';
+import { DatasetPreview } from '../../components/DatasetPreview';
 import { Panel } from '../../components/Panel';
+import { RequestDetail } from '../../components/RequestDetail';
 import { SessionList } from '../../components/SessionList';
 import { SENSITIVE_NOTICE } from '../../lib/consent';
-import { detectDatasets } from '../../lib/dataset';
+import { detectDatasets, type DatasetCandidate } from '../../lib/dataset';
 import { nativeApi } from '../../lib/native';
 import { startSession, stopSession } from '../../lib/session';
 import { getCurrentSession, getTermsAccepted, listRecentCaptures, listSessions, setTermsAccepted } from '../../lib/storage';
@@ -14,6 +16,8 @@ export default function App() {
   const [currentSession, setCurrentSessionState] = useState<CaptureSession | null>(null);
   const [storedSessions, setStoredSessions] = useState<CaptureSession[]>([]);
   const [captures, setCaptures] = useState<CaptureRecord[]>([]);
+  const [selectedCapture, setSelectedCapture] = useState<CaptureRecord | null>(null);
+  const [selectedDataset, setSelectedDataset] = useState<DatasetCandidate | null>(null);
   const [scope, setScope] = useState<CaptureSession['scope']>('domain');
   const [sensitiveMode, setSensitiveMode] = useState(false);
   const [termsAccepted, setTermsAcceptedState] = useState(false);
@@ -24,17 +28,28 @@ export default function App() {
   const datasets = useMemo(() => detectDatasets(captures), [captures]);
 
   async function refresh() {
-    setCurrentSessionState(await getCurrentSession());
-    setStoredSessions(await listSessions());
-    setCaptures(await listRecentCaptures());
+    const nextCurrentSession = await getCurrentSession();
+    const nextStoredSessions = await listSessions();
+    const nextCaptures = await listRecentCaptures();
+    setCurrentSessionState(nextCurrentSession);
+    setStoredSessions(nextStoredSessions);
+    setCaptures(nextCaptures);
     setTermsAcceptedState(await getTermsAccepted());
     const ping = await nativeApi.init();
     setNativeStatus(ping.ok ? 'connected' : 'fallback');
+    setSelectedCapture((prev) => nextCaptures.find((capture) => capture.id === prev?.id) ?? nextCaptures[0] ?? null);
   }
 
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    if (!selectedDataset && datasets.length > 0) setSelectedDataset(datasets[0]);
+    if (selectedDataset && !datasets.find((dataset) => dataset.captureId === selectedDataset.captureId)) {
+      setSelectedDataset(datasets[0] ?? null);
+    }
+  }, [datasets, selectedDataset]);
 
   async function handleStart() {
     if (sensitiveMode && !termsAccepted) return;
@@ -61,14 +76,14 @@ export default function App() {
       return;
     }
     const result = await nativeApi.analyzeWithOllama(
-      'Summarize the likely dataset and name the most important fields.',
-      datasets[0],
+      'Summarize the likely dataset, suggest a human-friendly dataset name, and identify the most useful fields.',
+      selectedDataset ?? datasets[0],
     );
     setAnalysisStatus(result.ok ? String((result.data as any)?.output ?? 'analysis complete') : `analysis failed: ${result.error}`);
   }
 
   return (
-    <div style={{ width: 560, padding: 16, background: '#0b0f14', color: '#f4f7fb', minHeight: 720, fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ width: 640, padding: 16, background: '#0b0f14', color: '#f4f7fb', minHeight: 760, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <h1 style={{ marginTop: 0, marginBottom: 8 }}>DockStack</h1>
       <p style={{ opacity: 0.84, marginTop: 0 }}>
         Local-first capture, structured extraction, storage, and export workspace.
@@ -119,15 +134,25 @@ export default function App() {
 
       <div style={{ height: 12 }} />
 
-      <Panel title="Detected Datasets">
-        <DatasetList datasets={datasets} />
-      </Panel>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Panel title="Detected Datasets">
+          <DatasetList datasets={datasets} selectedCaptureId={selectedDataset?.captureId} onSelect={setSelectedDataset} />
+        </Panel>
+        <Panel title="Dataset Preview">
+          <DatasetPreview dataset={selectedDataset} />
+        </Panel>
+      </div>
 
       <div style={{ height: 12 }} />
 
-      <Panel title="Recent Captures">
-        <CaptureTable captures={captures} />
-      </Panel>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Panel title="Recent Captures">
+          <CaptureTable captures={captures} selectedCaptureId={selectedCapture?.id} onSelect={setSelectedCapture} />
+        </Panel>
+        <Panel title="Request Detail Inspector">
+          <RequestDetail capture={selectedCapture} />
+        </Panel>
+      </div>
 
       <div style={{ height: 12 }} />
 

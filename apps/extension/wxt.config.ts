@@ -1,5 +1,7 @@
 import { defineConfig } from 'wxt';
 
+const extensionVersion = process.env.DOCKSTACK_VERSION ?? '0.1.0';
+
 export default defineConfig({
   srcDir: 'src',
   manifestVersion: 3,
@@ -7,7 +9,7 @@ export default defineConfig({
   manifest: {
     name: 'DockStack',
     description: 'DevTools-grade local capture and extraction workspace.',
-    version: '0.1.0',
+    version: extensionVersion,
     permissions: [
       'storage',
       'tabs',

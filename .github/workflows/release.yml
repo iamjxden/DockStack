@@ -1,13 +1,42 @@
 name: update
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  package:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          existing_tag="$(git tag --points-at HEAD 'v*' | head -n1 || true)"
+          if [ -n "$existing_tag" ]; then
+            tag="$existing_tag"
+          else
+            latest="$(git tag -l 'v*' --sort=-v:refname | head -n1 || true)"
+            if [ -z "$latest" ]; then
+              tag="v0.1.0"
+            else
+              current="${latest#v}"
+              IFS='.' read -r major minor patch <<< "$current"
+              patch=$((patch + 1))
+              tag="v${major}.${minor}.${patch}"
+            fi
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@v4
         with:
           version: 9.12.0
@@ -16,18 +45,60 @@ jobs:
           node-version: 20
       - name: Build extension
         working-directory: apps/extension
+        env:
+          DOCKSTACK_VERSION: ${{ steps.version.outputs.version }}
         run: |
           pnpm install --no-frozen-lockfile
           pnpm build
-          pnpm zip || true
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dockstack-extension
-          path: apps/extension/.output
+          pnpm zip
       - uses: dtolnay/rust-toolchain@stable
       - name: Build native core
         run: cargo build --release -p native-core
-      - uses: actions/upload-artifact@v4
+      - name: Package native bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp target/release/native-core dist/dockstack-native-core-linux-x64
+          cp scripts/install-native-host.sh dist/install-native-host.sh
+          cp scripts/install-native-host.ps1 dist/install-native-host.ps1
+          chmod +x dist/dockstack-native-core-linux-x64 dist/install-native-host.sh
+          tar -czf "dist/dockstack-native-core-linux-x64-${{ steps.version.outputs.version }}.tar.gz" -C dist dockstack-native-core-linux-x64 install-native-host.sh install-native-host.ps1
+      - name: Ensure tag exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "tag exists locally"
+          else
+            git tag "${{ steps.version.outputs.tag }}"
+          fi
+          if git ls-remote --tags origin "refs/tags/${{ steps.version.outputs.tag }}" | grep -q "${{ steps.version.outputs.tag }}"; then
+            echo "tag already on remote"
+          else
+            git push origin "${{ steps.version.outputs.tag }}"
+          fi
+      - name: Create release notes
+        shell: bash
+        run: |
+          cat > RELEASE_NOTES.md <<EOF
+          DockStack ${{ steps.version.outputs.tag }}
+
+          Included in this release:
+          - Chrome extension package
+          - Linux x64 native core bundle
+          - Native host install helpers
+
+          Versioning:
+          - initial release starts at v0.1.0
+          - later releases increment with semantic patch versions (v0.1.1, v0.1.2, ...)
+          EOF
+      - uses: softprops/action-gh-release@v2
         with:
-          name: dockstack-native-core
-          path: target/release/native-core*
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: DockStack ${{ steps.version.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            apps/extension/.output/dockstack-extension-*.zip
+            dist/dockstack-native-core-linux-x64-*.tar.gz
+            LICENSE
