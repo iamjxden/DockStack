@@ -70,6 +70,9 @@ DockStack is meant to become a serious developer and analyst tool, not a toy pop
   <img src="assets/architecture.svg" alt="DockStack architecture" width="100%" />
 </div>
 
+<div align="center">
+  <img src="assets/workflow.svg" alt="DockStack workflow" width="100%" />
+</div>
 ### High-level flow
 1. The **extension** captures network or page-level events.
 2. The **background worker** normalizes messages.
@@ -291,6 +294,18 @@ Planned browser targets:
 
 ---
 
+<<<<<<< HEAD
+=======
+## Additional documentation
+
+- [Architecture notes](docs/architecture.md)
+- [Security notes](docs/security.md)
+- [Native host notes](docs/native-host.md)
+- [Development notes](docs/development.md)
+
+---
+
+>>>>>>> 9f74981 (update)
 ## License
 
 Apache-2.0

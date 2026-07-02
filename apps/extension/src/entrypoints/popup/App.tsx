@@ -1,22 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CaptureTable } from '../../components/CaptureTable';
+import { DatasetList } from '../../components/DatasetList';
 import { Panel } from '../../components/Panel';
+import { SessionList } from '../../components/SessionList';
 import { SENSITIVE_NOTICE } from '../../lib/consent';
+import { detectDatasets } from '../../lib/dataset';
 import { nativeApi } from '../../lib/native';
 import { startSession, stopSession } from '../../lib/session';
-import { getCurrentSession, getTermsAccepted, listRecentCaptures, setTermsAccepted } from '../../lib/storage';
+import { getCurrentSession, getTermsAccepted, listRecentCaptures, listSessions, setTermsAccepted } from '../../lib/storage';
 import type { CaptureRecord, CaptureSession } from '../../lib/types';
 
 export default function App() {
   const [currentSession, setCurrentSessionState] = useState<CaptureSession | null>(null);
+  const [storedSessions, setStoredSessions] = useState<CaptureSession[]>([]);
   const [captures, setCaptures] = useState<CaptureRecord[]>([]);
   const [scope, setScope] = useState<CaptureSession['scope']>('domain');
   const [sensitiveMode, setSensitiveMode] = useState(false);
   const [termsAccepted, setTermsAcceptedState] = useState(false);
   const [nativeStatus, setNativeStatus] = useState('checking');
+  const [exportStatus, setExportStatus] = useState<string>('');
+  const [analysisStatus, setAnalysisStatus] = useState<string>('');
+
+  const datasets = useMemo(() => detectDatasets(captures), [captures]);
 
   async function refresh() {
     setCurrentSessionState(await getCurrentSession());
+    setStoredSessions(await listSessions());
     setCaptures(await listRecentCaptures());
     setTermsAcceptedState(await getTermsAccepted());
     const ping = await nativeApi.init();
@@ -30,6 +39,7 @@ export default function App() {
   async function handleStart() {
     if (sensitiveMode && !termsAccepted) return;
     await startSession(scope, sensitiveMode, termsAccepted);
+    setExportStatus('');
     await refresh();
   }
 
@@ -38,13 +48,34 @@ export default function App() {
     await refresh();
   }
 
+  async function handleExport(format: 'json' | 'csv') {
+    if (!currentSession) return;
+    const result = await nativeApi.exportSession(currentSession.id, format);
+    const exportPath = (result.data as { path?: string } | undefined)?.path ?? '';
+    setExportStatus(result.ok ? `exported ${format}: ${exportPath}` : `export failed: ${result.error}`);
+  }
+
+  async function handleAnalyze() {
+    if (datasets.length === 0) {
+      setAnalysisStatus('no dataset candidate available yet');
+      return;
+    }
+    const result = await nativeApi.analyzeWithOllama(
+      'Summarize the likely dataset and name the most important fields.',
+      datasets[0],
+    );
+    setAnalysisStatus(result.ok ? String((result.data as any)?.output ?? 'analysis complete') : `analysis failed: ${result.error}`);
+  }
+
   return (
-    <div style={{ width: 520, padding: 16, background: '#0b0f14', color: '#f4f7fb', minHeight: 640, fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <h1 style={{ marginTop: 0 }}>DockStack</h1>
-      <p style={{ opacity: 0.8 }}>DevTools-grade local capture, extraction, and export workspace.</p>
+    <div style={{ width: 560, padding: 16, background: '#0b0f14', color: '#f4f7fb', minHeight: 720, fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <h1 style={{ marginTop: 0, marginBottom: 8 }}>DockStack</h1>
+      <p style={{ opacity: 0.84, marginTop: 0 }}>
+        Local-first capture, structured extraction, storage, and export workspace.
+      </p>
 
       <Panel title="Capture Control">
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
           <label>
             Scope:&nbsp;
             <select value={scope} onChange={(e) => setScope(e.target.value as CaptureSession['scope'])}>
@@ -71,20 +102,37 @@ export default function App() {
               </label>
             </div>
           )}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <button onClick={handleStart} disabled={Boolean(currentSession)} style={{ padding: '10px 12px' }}>Start</button>
             <button onClick={handleStop} disabled={!currentSession} style={{ padding: '10px 12px' }}>Stop</button>
+            <button onClick={() => handleExport('json')} disabled={!currentSession} style={{ padding: '10px 12px' }}>Export JSON</button>
+            <button onClick={() => handleExport('csv')} disabled={!currentSession} style={{ padding: '10px 12px' }}>Export CSV</button>
+            <button onClick={handleAnalyze} style={{ padding: '10px 12px' }}>Analyze</button>
             <button onClick={refresh} style={{ padding: '10px 12px' }}>Refresh</button>
           </div>
           <small>Native core: {nativeStatus}</small>
           {currentSession && <small>Active session: {currentSession.id}</small>}
+          {exportStatus && <small>{exportStatus}</small>}
+          {analysisStatus && <small style={{ whiteSpace: 'pre-wrap' }}>{analysisStatus}</small>}
         </div>
+      </Panel>
+
+      <div style={{ height: 12 }} />
+
+      <Panel title="Detected Datasets">
+        <DatasetList datasets={datasets} />
       </Panel>
 
       <div style={{ height: 12 }} />
 
       <Panel title="Recent Captures">
         <CaptureTable captures={captures} />
+      </Panel>
+
+      <div style={{ height: 12 }} />
+
+      <Panel title="Session History">
+        <SessionList sessions={storedSessions} />
       </Panel>
     </div>
   );

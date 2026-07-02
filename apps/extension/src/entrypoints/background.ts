@@ -1,6 +1,7 @@
 import { defineBackground } from 'wxt/utils/define-background';
 import { appendCapture, getCurrentSession } from '../lib/storage';
 import { nativeApi } from '../lib/native';
+import { matchesScope } from '../lib/scope';
 import type { CaptureRecord } from '../lib/types';
 
 export default defineBackground(() => {
@@ -43,6 +44,7 @@ export default defineBackground(() => {
       pageUrl: raw.pageUrl ?? sender.tab?.url ?? null,
       createdAt: new Date().toISOString(),
     };
+    if (!matchesScope(session, record.url, record.pageUrl, sender.tab?.url)) return;
     await appendCapture(record);
     await nativeApi.ingestCapture(record);
   }

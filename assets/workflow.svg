@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="340" viewBox="0 0 1400 340">
+<rect width="1400" height="340" fill="#0b0f14"/>
+<g font-family="Arial" font-size="22">
+  <rect x="40" y="90" width="240" height="110" rx="18" fill="#132131" stroke="#44d2ff"/>
+  <text x="78" y="145" fill="#f4f7fb">Browser Extension</text>
+  <text x="78" y="178" fill="#9bb0c7" font-size="18">capture + UI</text>
+  <rect x="340" y="90" width="240" height="110" rx="18" fill="#132131" stroke="#45e0a8"/>
+  <text x="395" y="145" fill="#f4f7fb">Native Core</text>
+  <text x="395" y="178" fill="#9bb0c7" font-size="18">Rust orchestration</text>
+  <rect x="640" y="90" width="240" height="110" rx="18" fill="#132131" stroke="#7b8cff"/>
+  <text x="727" y="145" fill="#f4f7fb">SQLite</text>
+  <text x="703" y="178" fill="#9bb0c7" font-size="18">sessions + metadata</text>
+  <rect x="940" y="90" width="240" height="110" rx="18" fill="#132131" stroke="#ff7bb0"/>
+  <text x="1026" y="145" fill="#f4f7fb">DuckDB</text>
+  <text x="1000" y="178" fill="#9bb0c7" font-size="18">analytics tables</text>
+  <line x1="280" y1="145" x2="340" y2="145" stroke="#44d2ff" stroke-width="5"/>
+  <line x1="580" y1="145" x2="640" y2="145" stroke="#45e0a8" stroke-width="5"/>
+  <line x1="880" y1="145" x2="940" y2="145" stroke="#ff7bb0" stroke-width="5"/>
+</g>
+</svg>
