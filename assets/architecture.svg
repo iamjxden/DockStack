@@ -1,36 +1,142 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820">
-<rect width="1400" height="820" fill="#0b0f14"/>
-<text x="60" y="70" fill="#f4f7fb" font-size="42" font-family="Arial" font-weight="700">DockStack Architecture</text>
-<g font-family="Arial" font-size="24">
-  <rect x="60" y="120" width="1280" height="640" rx="28" fill="#101723" stroke="#233549"/>
-  <rect x="110" y="180" width="320" height="130" rx="18" fill="#132131" stroke="#45e0a8"/>
-  <text x="145" y="235" fill="#f4f7fb">Extension (WXT + React + TS)</text>
-  <text x="145" y="275" fill="#9bb0c7" font-size="20">Popup, options, content scripts, capture control</text>
 
-  <rect x="520" y="180" width="360" height="130" rx="18" fill="#132131" stroke="#44d2ff"/>
-  <text x="565" y="235" fill="#f4f7fb">Rust Native Core</text>
-  <text x="565" y="275" fill="#9bb0c7" font-size="20">Native messaging, policy, orchestration</text>
+<defs>
 
-  <rect x="970" y="180" width="270" height="130" rx="18" fill="#132131" stroke="#ffd35a"/>
-  <text x="1010" y="235" fill="#f4f7fb">Local AI</text>
-  <text x="1010" y="275" fill="#9bb0c7" font-size="20">Ollama / llama.cpp</text>
+  <!-- Background -->
+  <radialGradient id="bg" cx="50%" cy="40%" r="80%">
+    <stop offset="0%" stop-color="#111a28"/>
+    <stop offset="100%" stop-color="#070a10"/>
+  </radialGradient>
 
-  <rect x="180" y="430" width="280" height="130" rx="18" fill="#132131" stroke="#7b8cff"/>
-  <text x="235" y="485" fill="#f4f7fb">SQLite</text>
-  <text x="235" y="525" fill="#9bb0c7" font-size="20">Operational state, sessions, indexes</text>
+  <!-- Glow effects -->
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+    <feMerge>
+      <feMergeNode in="coloredBlur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
 
-  <rect x="560" y="430" width="280" height="130" rx="18" fill="#132131" stroke="#ff7bb0"/>
-  <text x="625" y="485" fill="#f4f7fb">DuckDB</text>
-  <text x="625" y="525" fill="#9bb0c7" font-size="20">Analytics, tables, heavy export queries</text>
+  <!-- Soft shadow -->
+  <filter id="shadow">
+    <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.5"/>
+  </filter>
 
-  <rect x="940" y="430" width="280" height="130" rx="18" fill="#132131" stroke="#45e0a8"/>
-  <text x="990" y="485" fill="#f4f7fb">Export Engine</text>
-  <text x="990" y="525" fill="#9bb0c7" font-size="20">CSV, JSON, future HAR/session bundles</text>
+  <!-- Grid pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a2433" stroke-width="0.5"/>
+  </pattern>
 
-  <line x1="430" y1="245" x2="520" y2="245" stroke="#44d2ff" stroke-width="6"/>
-  <line x1="880" y1="245" x2="970" y2="245" stroke="#ffd35a" stroke-width="6"/>
-  <line x1="700" y1="310" x2="700" y2="430" stroke="#45e0a8" stroke-width="6"/>
-  <line x1="700" y1="310" x2="320" y2="430" stroke="#7b8cff" stroke-width="4"/>
-  <line x1="700" y1="310" x2="1080" y2="430" stroke="#45e0a8" stroke-width="4"/>
-</g>
+  <style>
+    .title { font: 700 44px Arial; fill: #f5f9ff; letter-spacing: 1px; }
+    .subtitle { font: 18px Arial; fill: #8ea2c0; }
+
+    .panel {
+      fill: rgba(18, 26, 40, 0.7);
+      stroke: #26364d;
+      stroke-width: 1.5;
+      filter: url(#shadow);
+    }
+
+    .node {
+      fill: #121e2e;
+      stroke-width: 2;
+      rx: 18;
+      filter: url(#shadow);
+    }
+
+    .node-title { font: 700 20px Arial; fill: #eaf2ff; }
+    .node-text { font: 16px Arial; fill: #93a7c2; }
+
+    .line {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      opacity: 0.9;
+    }
+
+    .flow-dot {
+      fill: #ffffff;
+      filter: url(#glow);
+    }
+  </style>
+
+</defs>
+
+<!-- BACKGROUND -->
+<rect width="1400" height="820" fill="url(#bg)"/>
+<rect width="1400" height="820" fill="url(#grid)" opacity="0.35"/>
+
+<!-- TITLE -->
+<text x="60" y="80" class="title">DockStack Architecture</text>
+<text x="60" y="110" class="subtitle">High-performance hybrid extension + native + AI system</text>
+
+<!-- MAIN PANEL -->
+<rect x="50" y="130" width="1300" height="650" rx="26" class="panel"/>
+
+<!-- ================= TOP ROW ================= -->
+
+<!-- Extension -->
+<rect x="90" y="180" width="360" height="150" class="node" stroke="#45e0a8"/>
+<text x="120" y="225" class="node-title">Extension Layer</text>
+<text x="120" y="255" class="node-text">WXT + React + TypeScript</text>
+<text x="120" y="280" class="node-text">UI • Capture • Scripts</text>
+
+<!-- Rust Core -->
+<rect x="520" y="180" width="360" height="150" class="node" stroke="#44d2ff"/>
+<text x="550" y="225" class="node-title">Rust Core Engine</text>
+<text x="550" y="255" class="node-text">Native Messaging Bridge</text>
+<text x="550" y="280" class="node-text">Policy • Orchestration</text>
+
+<!-- Local AI -->
+<rect x="950" y="180" width="360" height="150" class="node" stroke="#ffd35a"/>
+<text x="980" y="225" class="node-title">Local AI Runtime</text>
+<text x="980" y="255" class="node-text">Ollama • llama.cpp</text>
+<text x="980" y="280" class="node-text">Inference Engine</text>
+
+<!-- ================= MIDDLE FLOW NODES ================= -->
+
+<!-- Router Node -->
+<circle cx="700" cy="380" r="18" fill="#1b2a40" stroke="#44d2ff" stroke-width="2" filter="url(#glow)"/>
+<text x="735" y="386" class="node-text">Message Router</text>
+
+<!-- ================= STORAGE ROW ================= -->
+
+<!-- SQLite -->
+<rect x="170" y="450" width="300" height="140" class="node" stroke="#7b8cff"/>
+<text x="200" y="500" class="node-title">SQLite</text>
+<text x="200" y="530" class="node-text">Sessions • State</text>
+<text x="200" y="555" class="node-text">Indexes • Cache</text>
+
+<!-- DuckDB -->
+<rect x="550" y="450" width="300" height="140" class="node" stroke="#ff7bb0"/>
+<text x="580" y="500" class="node-title">DuckDB</text>
+<text x="580" y="530" class="node-text">Analytics Engine</text>
+<text x="580" y="555" class="node-text">Heavy Queries</text>
+
+<!-- Export -->
+<rect x="930" y="450" width="300" height="140" class="node" stroke="#45e0a8"/>
+<text x="960" y="500" class="node-title">Export Engine</text>
+<text x="960" y="530" class="node-text">CSV • JSON</text>
+<text x="960" y="555" class="node-text">Session Bundles</text>
+
+<!-- ================= CONNECTION LINES ================= -->
+
+<!-- Top connections -->
+<path d="M450 255 C 480 255, 490 255, 520 255" class="line" stroke="#44d2ff"/>
+<path d="M880 255 C 910 255, 920 255, 950 255" class="line" stroke="#ffd35a"/>
+
+<!-- Down to router -->
+<path d="M700 330 C 700 350, 700 360, 700 362" class="line" stroke="#44d2ff"/>
+
+<!-- Router splits -->
+<path d="M700 398 C 520 410, 420 430, 320 450" class="line" stroke="#7b8cff"/>
+<path d="M700 398 C 700 410, 650 430, 650 450" class="line" stroke="#ff7bb0"/>
+<path d="M700 398 C 850 410, 980 430, 1080 450" class="line" stroke="#45e0a8"/>
+
+<!-- Flow dots -->
+<circle cx="520" cy="255" r="4" class="flow-dot"/>
+<circle cx="950" cy="255" r="4" class="flow-dot"/>
+<circle cx="700" cy="360" r="4" class="flow-dot"/>
+
 </svg>
