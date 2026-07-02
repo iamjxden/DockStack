@@ -5,12 +5,16 @@ import { DatasetPreview } from '../../components/DatasetPreview';
 import { Panel } from '../../components/Panel';
 import { RequestDetail } from '../../components/RequestDetail';
 import { SessionList } from '../../components/SessionList';
+import { StatsCards } from '../../components/StatsCards';
 import { SENSITIVE_NOTICE } from '../../lib/consent';
 import { detectDatasets, type DatasetCandidate } from '../../lib/dataset';
+import { copyText, downloadTextFile } from '../../lib/download';
 import { nativeApi } from '../../lib/native';
+import { getSettings } from '../../lib/settings';
+import { summarizeCaptures } from '../../lib/summary';
 import { startSession, stopSession } from '../../lib/session';
 import { getCurrentSession, getTermsAccepted, listRecentCaptures, listSessions, setTermsAccepted } from '../../lib/storage';
-import type { CaptureRecord, CaptureSession } from '../../lib/types';
+import type { CaptureKind, CaptureRecord, CaptureSession } from '../../lib/types';
 
 export default function App() {
   const [currentSession, setCurrentSessionState] = useState<CaptureSession | null>(null);
@@ -24,16 +28,30 @@ export default function App() {
   const [nativeStatus, setNativeStatus] = useState('checking');
   const [exportStatus, setExportStatus] = useState<string>('');
   const [analysisStatus, setAnalysisStatus] = useState<string>('');
+  const [search, setSearch] = useState('');
+  const [kindFilter, setKindFilter] = useState<'all' | CaptureKind>('all');
 
-  const datasets = useMemo(() => detectDatasets(captures), [captures]);
+  const filteredCaptures = useMemo(() => {
+    return captures.filter((capture) => {
+      const matchesKind = kindFilter === 'all' || capture.kind === kindFilter;
+      const query = search.trim().toLowerCase();
+      const matchesSearch = !query || capture.url.toLowerCase().includes(query) || capture.method.toLowerCase().includes(query);
+      return matchesKind && matchesSearch;
+    });
+  }, [captures, kindFilter, search]);
+
+  const datasets = useMemo(() => detectDatasets(filteredCaptures), [filteredCaptures]);
+  const summary = useMemo(() => summarizeCaptures(filteredCaptures), [filteredCaptures]);
 
   async function refresh() {
+    const settings = await getSettings();
     const nextCurrentSession = await getCurrentSession();
     const nextStoredSessions = await listSessions();
     const nextCaptures = await listRecentCaptures();
     setCurrentSessionState(nextCurrentSession);
     setStoredSessions(nextStoredSessions);
-    setCaptures(nextCaptures);
+    setCaptures(nextCaptures.slice(0, settings.captureRetentionLimit));
+    setScope(settings.defaultScope);
     setTermsAcceptedState(await getTermsAccepted());
     const ping = await nativeApi.init();
     setNativeStatus(ping.ok ? 'connected' : 'fallback');
@@ -82,12 +100,36 @@ export default function App() {
     setAnalysisStatus(result.ok ? String((result.data as any)?.output ?? 'analysis complete') : `analysis failed: ${result.error}`);
   }
 
+  async function handleCopyCapture() {
+    if (!selectedCapture) return;
+    await copyText(JSON.stringify(selectedCapture, null, 2));
+    setExportStatus('copied selected capture as JSON');
+  }
+
+  function handleDownloadCapture() {
+    if (!selectedCapture) return;
+    downloadTextFile(`dockstack-capture-${selectedCapture.id}.json`, JSON.stringify(selectedCapture, null, 2), 'application/json;charset=utf-8');
+    setExportStatus('downloaded selected capture JSON');
+  }
+
+  function handleDownloadDataset() {
+    if (!selectedDataset) return;
+    downloadTextFile(`dockstack-dataset-${selectedDataset.captureId}.json`, JSON.stringify(selectedDataset.previewRows, null, 2), 'application/json;charset=utf-8');
+    setExportStatus('downloaded dataset preview JSON');
+  }
+
   return (
-    <div style={{ width: 640, padding: 16, background: '#0b0f14', color: '#f4f7fb', minHeight: 760, fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ width: 700, padding: 16, background: '#0b0f14', color: '#f4f7fb', minHeight: 840, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <h1 style={{ marginTop: 0, marginBottom: 8 }}>DockStack</h1>
       <p style={{ opacity: 0.84, marginTop: 0 }}>
         Local-first capture, structured extraction, storage, and export workspace.
       </p>
+
+      <Panel title="Capture Overview">
+        <StatsCards summary={summary} />
+      </Panel>
+
+      <div style={{ height: 12 }} />
 
       <Panel title="Capture Control">
         <div style={{ display: 'grid', gap: 10 }}>
@@ -134,12 +176,37 @@ export default function App() {
 
       <div style={{ height: 12 }} />
 
+      <Panel title="Capture Filters">
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            placeholder="Search URL or method"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ flex: 1, minWidth: 220 }}
+          />
+          <select value={kindFilter} onChange={(e) => setKindFilter(e.target.value as 'all' | CaptureKind)}>
+            <option value="all">All kinds</option>
+            <option value="fetch">fetch</option>
+            <option value="xhr">xhr</option>
+            <option value="devtools">devtools</option>
+            <option value="websocket">websocket</option>
+          </select>
+          <button onClick={() => { setSearch(''); setKindFilter('all'); }}>Clear</button>
+        </div>
+      </Panel>
+
+      <div style={{ height: 12 }} />
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Panel title="Detected Datasets">
           <DatasetList datasets={datasets} selectedCaptureId={selectedDataset?.captureId} onSelect={setSelectedDataset} />
         </Panel>
         <Panel title="Dataset Preview">
           <DatasetPreview dataset={selectedDataset} />
+          <div style={{ marginTop: 10 }}>
+            <button onClick={handleDownloadDataset} disabled={!selectedDataset}>Download Preview JSON</button>
+          </div>
         </Panel>
       </div>
 
@@ -147,10 +214,14 @@ export default function App() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Panel title="Recent Captures">
-          <CaptureTable captures={captures} selectedCaptureId={selectedCapture?.id} onSelect={setSelectedCapture} />
+          <CaptureTable captures={filteredCaptures} selectedCaptureId={selectedCapture?.id} onSelect={setSelectedCapture} />
         </Panel>
         <Panel title="Request Detail Inspector">
           <RequestDetail capture={selectedCapture} />
+          <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={handleCopyCapture} disabled={!selectedCapture}>Copy Capture JSON</button>
+            <button onClick={handleDownloadCapture} disabled={!selectedCapture}>Download Capture JSON</button>
+          </div>
         </Panel>
       </div>
 

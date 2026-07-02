@@ -25,6 +25,15 @@ export interface CaptureSession {
   termsAccepted: boolean;
 }
 
+export interface ExtensionSettings {
+  defaultScope: CaptureSession['scope'];
+  captureRetentionLimit: number;
+  ollamaUrl: string;
+  ollamaModel: string;
+  autoRefreshPopup: boolean;
+  maskSecretsInUi: boolean;
+}
+
 export interface NativeRequest<T = unknown> {
   kind: string;
   payload: T;
