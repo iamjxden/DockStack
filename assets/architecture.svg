@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820">
+<rect width="1400" height="820" fill="#0b0f14"/>
+<text x="60" y="70" fill="#f4f7fb" font-size="42" font-family="Arial" font-weight="700">DockStack Architecture</text>
+<g font-family="Arial" font-size="24">
+  <rect x="60" y="120" width="1280" height="640" rx="28" fill="#101723" stroke="#233549"/>
+  <rect x="110" y="180" width="320" height="130" rx="18" fill="#132131" stroke="#45e0a8"/>
+  <text x="145" y="235" fill="#f4f7fb">Extension (WXT + React + TS)</text>
+  <text x="145" y="275" fill="#9bb0c7" font-size="20">Popup, options, content scripts, capture control</text>
+
+  <rect x="520" y="180" width="360" height="130" rx="18" fill="#132131" stroke="#44d2ff"/>
+  <text x="565" y="235" fill="#f4f7fb">Rust Native Core</text>
+  <text x="565" y="275" fill="#9bb0c7" font-size="20">Native messaging, policy, orchestration</text>
+
+  <rect x="970" y="180" width="270" height="130" rx="18" fill="#132131" stroke="#ffd35a"/>
+  <text x="1010" y="235" fill="#f4f7fb">Local AI</text>
+  <text x="1010" y="275" fill="#9bb0c7" font-size="20">Ollama / llama.cpp</text>
+
+  <rect x="180" y="430" width="280" height="130" rx="18" fill="#132131" stroke="#7b8cff"/>
+  <text x="235" y="485" fill="#f4f7fb">SQLite</text>
+  <text x="235" y="525" fill="#9bb0c7" font-size="20">Operational state, sessions, indexes</text>
+
+  <rect x="560" y="430" width="280" height="130" rx="18" fill="#132131" stroke="#ff7bb0"/>
+  <text x="625" y="485" fill="#f4f7fb">DuckDB</text>
+  <text x="625" y="525" fill="#9bb0c7" font-size="20">Analytics, tables, heavy export queries</text>
+
+  <rect x="940" y="430" width="280" height="130" rx="18" fill="#132131" stroke="#45e0a8"/>
+  <text x="990" y="485" fill="#f4f7fb">Export Engine</text>
+  <text x="990" y="525" fill="#9bb0c7" font-size="20">CSV, JSON, future HAR/session bundles</text>
+
+  <line x1="430" y1="245" x2="520" y2="245" stroke="#44d2ff" stroke-width="6"/>
+  <line x1="880" y1="245" x2="970" y2="245" stroke="#ffd35a" stroke-width="6"/>
+  <line x1="700" y1="310" x2="700" y2="430" stroke="#45e0a8" stroke-width="6"/>
+  <line x1="700" y1="310" x2="320" y2="430" stroke="#7b8cff" stroke-width="4"/>
+  <line x1="700" y1="310" x2="1080" y2="430" stroke="#45e0a8" stroke-width="4"/>
+</g>
+</svg>

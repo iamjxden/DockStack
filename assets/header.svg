@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="420" viewBox="0 0 1600 420">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#0b0f14"/>
+    <stop offset="100%" stop-color="#101a28"/>
+  </linearGradient>
+  <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#44d2ff"/>
+    <stop offset="100%" stop-color="#45e0a8"/>
+  </linearGradient>
+</defs>
+<rect width="1600" height="420" fill="url(#bg)"/>
+<rect x="70" y="60" width="1460" height="300" rx="28" fill="#0f1621" stroke="#203349"/>
+<text x="120" y="170" fill="#f4f7fb" font-size="64" font-family="Arial, Helvetica, sans-serif" font-weight="700">DockStack</text>
+<text x="120" y="230" fill="#9bb0c7" font-size="28" font-family="Arial, Helvetica, sans-serif">DevTools-grade local capture, extraction, storage, and AI-assisted analysis.</text>
+<rect x="120" y="270" width="260" height="14" rx="7" fill="url(#accent)"/>
+<g transform="translate(1100 95)">
+  <rect x="0" y="0" width="320" height="220" rx="20" fill="#0b1017" stroke="#27425f"/>
+  <rect x="24" y="28" width="272" height="22" rx="8" fill="#14202e"/>
+  <rect x="24" y="70" width="116" height="16" rx="6" fill="#44d2ff"/>
+  <rect x="24" y="100" width="240" height="14" rx="6" fill="#223447"/>
+  <rect x="24" y="126" width="200" height="14" rx="6" fill="#223447"/>
+  <rect x="24" y="160" width="128" height="14" rx="6" fill="#45e0a8"/>
+  <rect x="24" y="188" width="170" height="14" rx="6" fill="#223447"/>
+</g>
+</svg>

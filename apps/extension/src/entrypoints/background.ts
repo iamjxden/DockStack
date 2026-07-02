@@ -1,4 +1,4 @@
-import { defineBackground } from 'wxt/sandbox';
+import { defineBackground } from 'wxt/utils/define-background';
 import { appendCapture, getCurrentSession } from '../lib/storage';
 import { nativeApi } from '../lib/native';
 import type { CaptureRecord } from '../lib/types';
