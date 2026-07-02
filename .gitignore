@@ -1,0 +1,13 @@
+node_modules
+.output
+dist
+coverage
+.DS_Store
+.env
+.env.*
+*.log
+pnpm-lock.yaml
+Cargo.lock
+target
+apps/native-core/runtime/
+apps/native-core/data/

@@ -1,0 +1,33 @@
+name: update
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build extension
+        working-directory: apps/extension
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm build
+          pnpm zip || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dockstack-extension
+          path: apps/extension/.output
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build native core
+        run: cargo build --release -p native-core
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dockstack-native-core
+          path: target/release/native-core*

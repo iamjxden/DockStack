@@ -1,0 +1,18 @@
+[package]
+name = "native-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+capture-core = { path = "../../crates/capture-core" }
+storage-sqlite = { path = "../../crates/storage-sqlite" }
+storage-duckdb = { path = "../../crates/storage-duckdb" }
+export-engine = { path = "../../crates/export-engine" }
+ai-engine = { path = "../../crates/ai-engine" }
+secret-policy = { path = "../../crates/secret-policy" }
