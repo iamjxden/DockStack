@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: apps/extension/package.json
+          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
       - run: pnpm zip || true

@@ -11,3 +11,4 @@ Cargo.lock
 target
 apps/native-core/runtime/
 apps/native-core/data/
+apps/extension/.wxt/

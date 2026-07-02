@@ -76,8 +76,10 @@ fn main() -> Result<()> {
             "ollama_analyze" => {
                 let prompt = message.payload.get("prompt").and_then(|v| v.as_str()).unwrap_or_default();
                 let context = message.payload.get("context").cloned().unwrap_or(json!({}));
-                let output = ollama.analyze(prompt, &context);
-                json!({ "ok": output.is_ok(), "data": output.ok(), "error": output.err().map(|e| e.to_string()) })
+                match ollama.analyze(prompt, &context) {
+                    Ok(data) => json!({ "ok": true, "data": data }),
+                    Err(error) => json!({ "ok": false, "error": error.to_string() }),
+                }
             }
             _ => json!({ "ok": false, "error": "unknown message kind" }),
         };
